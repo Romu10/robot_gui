@@ -25,9 +25,9 @@ void RobotGui::teleoperation_buttons(){
 }
 
 void RobotGui::odometry(){
-    odom_topic_name = "odom";
+    odom_topic_name = "/odom";
     sub_ = nh->subscribe<nav_msgs::Odometry>(
-            odom_topic_name, 2, &CVUIROSOdomSubscriber::OdomMsgCallback, this);
+            odom_topic_name, 2, &RobotGui::OdomMsgCallback, this);
 }
 
 void RobotGui::msgCallback(const std_msgs::Float64::ConstPtr &msg){
@@ -36,7 +36,7 @@ void RobotGui::msgCallback(const std_msgs::Float64::ConstPtr &msg){
 }
 
 void RobotGui::OdomMsgCallback(const nav_msgs::Odometry::ConstPtr &msg){
-    data = *msg;
+    odom_data = *msg;
     ROS_DEBUG("Position x,y,z: [%0.2f, %0.2f, %0.2f]", msg->pose.pose.position.x,
             msg->pose.pose.position.y, msg->pose.pose.position.z);
 }
@@ -45,6 +45,7 @@ void RobotGui::OdomMsgCallback(const nav_msgs::Odometry::ConstPtr &msg){
 void RobotGui::run(){
 
 /*GENERAL INFO */
+
     // Window Size in Pixel
     cv::Mat frame = cv::Mat(800, 1200, CV_8UC3);
 
@@ -113,8 +114,25 @@ void RobotGui::run(){
     cvui::printf(frame, 375, 425, 0.4, 0xff0000, "%.02f rad/sec",
                  twist_msg.angular.z);
     
+/* ODOMETRY */
     
+    // Square for  X
+    cvui::window(frame, 50, 520, 80, 100, "X");
+    cvui::printf(frame, 60, 565, 0.9, 0xffffff,
+                 "%0.2f",odom_data.pose.pose.position.x);
+    // Square for  Y
+    cvui::window(frame, 150, 520, 80, 100, "Y");
+    cvui::printf(frame, 160, 565, 0.9, 0xffffff,
+                 "%0.2f",odom_data.pose.pose.position.y);
+    // Square for  Z
+    cvui::window(frame, 250, 520, 80, 100, "Z");
+    cvui::printf(frame, 260, 565, 0.9, 0xffffff,
+                 "%0.2f",odom_data.pose.pose.position.z);
+    
+
+
 /* UPDATE AND SHOW IN SCREEN */
+
     // Update cvui internal stuff
     cvui::update();
 
@@ -123,6 +141,7 @@ void RobotGui::run(){
 
 
 /* STOP THE PROGRAM */
+
     // Check if ESC key was pressed
     if (cv::waitKey(20) == 27) {
       break;
@@ -135,4 +154,3 @@ void RobotGui::run(){
     
     }
 }
-

@@ -48,7 +48,7 @@ class RobotGui{
         ros::Subscriber odom_sub_;
         nav_msgs::Odometry odom_data;
         std::string odom_topic_name;
-        void msgCallback(const nav_msgs::Odometry::ConstPtr &msg);
+        void OdomMsgCallback(const nav_msgs::Odometry::ConstPtr &msg);
         
     protected:
         ros::NodeHandle *nh;

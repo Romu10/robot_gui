@@ -144,6 +144,7 @@ include_directories(
  				src/robot_gui_main.cpp
 				)
 
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -158,6 +159,7 @@ include_directories(
  target_link_libraries(robot_gui_node
    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} robot_gui_lib 
  )
+
 
 #############
 ## Install ##

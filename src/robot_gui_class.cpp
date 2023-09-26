@@ -3,6 +3,9 @@
 #include "ros/init.h"
 #include "ros/node_handle.h"
 #include "std_msgs/Float64.h"
+#include <iostream>
+#include <string>
+#include "robotinfo_msgs/RobotInfo10Fields.h"
 
 RobotGui::RobotGui(ros::NodeHandle *node_handle){
 
@@ -10,13 +13,14 @@ RobotGui::RobotGui(ros::NodeHandle *node_handle){
     general_info_area_init();
     teleoperation_buttons();
     odometry();
-
+    trigger_service(std::string("/get_distance"));
 }
 
 void RobotGui::general_info_area_init(){
-    topic_name_sub = "/robot_info";
-    sub_ = nh->subscribe<std_msgs::Float64>(topic_name_sub, 2,
+    topic_name_sub = "robot_info";
+    sub_ = nh->subscribe<robotinfo_msgs::RobotInfo10Fields>(topic_name_sub, 2,
                                           &RobotGui::msgCallback, this);
+    ROS_INFO("Subscribed to: %s", topic_name_sub.c_str());
 }
 
 void RobotGui::teleoperation_buttons(){
@@ -25,14 +29,15 @@ void RobotGui::teleoperation_buttons(){
 }
 
 void RobotGui::odometry(){
-    odom_topic_name = "/odom";
+    odom_topic_name = "odom";
     sub_ = nh->subscribe<nav_msgs::Odometry>(
             odom_topic_name, 2, &RobotGui::OdomMsgCallback, this);
 }
 
-void RobotGui::msgCallback(const std_msgs::Float64::ConstPtr &msg){
+void RobotGui::msgCallback(const robotinfo_msgs::RobotInfo10Fields::ConstPtr &msg){
     data = *msg;
-    ROS_DEBUG("Number received: %f", msg->data);
+
+    //ROS_DEBUG("Number received: %s", msg->data);
 }
 
 void RobotGui::OdomMsgCallback(const nav_msgs::Odometry::ConstPtr &msg){
@@ -41,13 +46,18 @@ void RobotGui::OdomMsgCallback(const nav_msgs::Odometry::ConstPtr &msg){
             msg->pose.pose.position.y, msg->pose.pose.position.z);
 }
 
+void RobotGui::trigger_service(const std::string &srv_name){
+    service_client = nh->serviceClient<std_srvs::Trigger>(srv_name);
+    service_name = srv_name;       
+}
+
 
 void RobotGui::run(){
 
 /*GENERAL INFO */
 
     // Window Size in Pixel
-    cv::Mat frame = cv::Mat(800, 1200, CV_8UC3);
+    cv::Mat frame = cv::Mat(800, 500, CV_8UC3);
 
     // Init a OpenCV window and tell cvui to use it.
     cv::namedWindow(WINDOW_NAME);
@@ -62,7 +72,8 @@ void RobotGui::run(){
     cvui::window(frame, 50, 50, 250, 250, "Topic: " + topic_name_sub);
 
     // Show how many times the button has been clicked inside the window.
-    cvui::printf(frame, 55, 75, 0.4, 0xff0000, "Data received: %0.2f", data);
+    cvui::printf(frame, 55, 75, 0.4, 0xff0000, "Data received: %s", data);
+
 
 /* CMD VEL PUBLISHER */
     
@@ -118,17 +129,42 @@ void RobotGui::run(){
     
     // Square for  X
     cvui::window(frame, 50, 520, 80, 100, "X");
-    cvui::printf(frame, 60, 565, 0.9, 0xffffff,
+    cvui::printf(frame, 60, 565, 0.6, 0xffffff,
                  "%0.2f",odom_data.pose.pose.position.x);
     // Square for  Y
     cvui::window(frame, 150, 520, 80, 100, "Y");
-    cvui::printf(frame, 160, 565, 0.9, 0xffffff,
+    cvui::printf(frame, 160, 565, 0.6, 0xffffff,
                  "%0.2f",odom_data.pose.pose.position.y);
     // Square for  Z
     cvui::window(frame, 250, 520, 80, 100, "Z");
-    cvui::printf(frame, 260, 565, 0.9, 0xffffff,
+    cvui::printf(frame, 260, 565, 0.6, 0xffffff,
                  "%0.2f",odom_data.pose.pose.position.z);
     
+/* SERVICE */
+    
+    cvui::window(frame, 50, 700, 300, 70, "Distance travelled");
+    
+    // Call the service
+    if (cvui::button(frame, 50, 660, "Call Service")) {
+      // Send the request and wait for a response
+      if (service_client.call(srv_req)) {
+        // Print the response message and return true
+        ROS_DEBUG("Response message: %s", srv_req.response.message.c_str());
+        // set latest service call status
+        last_service_call_msg = srv_req.response.message;
+        service_call_counter++;
+      } else {
+        last_service_call_msg = "Service call failed.";
+        service_call_counter = 0;
+      }
+    }
+
+    // Display the last response inside the window
+    if (not last_service_call_msg.empty()) {
+      
+      cvui::printf(frame, 55, 740, 0.6, 0xff0000, "%s",
+                   last_service_call_msg.c_str());
+    }
 
 
 /* UPDATE AND SHOW IN SCREEN */

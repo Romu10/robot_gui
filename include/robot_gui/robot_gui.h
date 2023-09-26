@@ -25,6 +25,7 @@
 class RobotGui {
 
     public:
+
         RobotGui(ros::NodeHandle *node_handle);
         RobotGui(){};
         void run();
@@ -32,8 +33,6 @@ class RobotGui {
         void teleoperation_buttons();
         void odometry();
         void trigger_service(const std::string &srv_name);
-        void msgCallback(const robotinfo_msgs::RobotInfo10Fields::ConstPtr &msg);
-
 
     private:
 
@@ -41,7 +40,8 @@ class RobotGui {
         ros::Subscriber sub_;
         robotinfo_msgs::RobotInfo10Fields data;
         std::string topic_name_sub;
-        void msgCallback(const std_msgs::String::ConstPtr &msg);
+        void msgCallback(const robotinfo_msgs::RobotInfo10Fields::ConstPtr &msg);
+
         
         // WINDOW NAME
         const std::string WINDOW_NAME = "CVUI ROS SIMPLE SUBSCRIBER";
@@ -67,9 +67,8 @@ class RobotGui {
         int service_call_counter = 0;
         
     protected:
+    
         ros::NodeHandle *nh;
         
-    
-
 };
 

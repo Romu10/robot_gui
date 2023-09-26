@@ -6,6 +6,7 @@
 #include <iostream>
 #include <string>
 #include "robotinfo_msgs/RobotInfo10Fields.h"
+#include <ros/ros.h>
 
 RobotGui::RobotGui(ros::NodeHandle *node_handle){
 
@@ -18,7 +19,7 @@ RobotGui::RobotGui(ros::NodeHandle *node_handle){
 
 void RobotGui::general_info_area_init(){
     topic_name_sub = "robot_info";
-    sub_ = nh->subscribe<robotinfo_msgs::RobotInfo10Fields>(topic_name_sub, 2,
+    sub_ = nh->subscribe<robotinfo_msgs::RobotInfo10Fields>(topic_name_sub, 10,
                                           &RobotGui::msgCallback, this);
     ROS_INFO("Subscribed to: %s", topic_name_sub.c_str());
 }
@@ -30,14 +31,12 @@ void RobotGui::teleoperation_buttons(){
 
 void RobotGui::odometry(){
     odom_topic_name = "odom";
-    sub_ = nh->subscribe<nav_msgs::Odometry>(
+    odom_sub_ = nh->subscribe<nav_msgs::Odometry>(
             odom_topic_name, 2, &RobotGui::OdomMsgCallback, this);
 }
 
 void RobotGui::msgCallback(const robotinfo_msgs::RobotInfo10Fields::ConstPtr &msg){
     data = *msg;
-
-    //ROS_DEBUG("Number received: %s", msg->data);
 }
 
 void RobotGui::OdomMsgCallback(const nav_msgs::Odometry::ConstPtr &msg){
@@ -72,7 +71,16 @@ void RobotGui::run(){
     cvui::window(frame, 50, 50, 250, 250, "Topic: " + topic_name_sub);
 
     // Show how many times the button has been clicked inside the window.
-    cvui::printf(frame, 55, 75, 0.4, 0xff0000, "Data received: %s", data);
+    cvui::printf(frame, 55, 75, 0.4, 0xff0000, "1 - %s", data.data_field_01.c_str());
+    cvui::printf(frame, 55, 95, 0.4, 0xff0000, "2 - %s", data.data_field_02.c_str());
+    cvui::printf(frame, 55, 115, 0.4, 0xff0000, "3 - %s", data.data_field_03.c_str());
+    cvui::printf(frame, 55, 135, 0.4, 0xff0000, "4 - %s", data.data_field_04.c_str());
+    cvui::printf(frame, 55, 155, 0.4, 0xff0000, "5 - %s", data.data_field_05.c_str());
+    cvui::printf(frame, 55, 175, 0.4, 0xff0000, "6 - %s", data.data_field_06.c_str());
+    cvui::printf(frame, 55, 195, 0.4, 0xff0000, "7 - %s", data.data_field_07.c_str());
+    cvui::printf(frame, 55, 215, 0.4, 0xff0000, "8 - %s", data.data_field_08.c_str());
+    cvui::printf(frame, 55, 235, 0.4, 0xff0000, "9 - %s", data.data_field_09.c_str());
+    cvui::printf(frame, 55, 255, 0.4, 0xff0000, "10 - %s", data.data_field_10.c_str());
 
 
 /* CMD VEL PUBLISHER */
@@ -184,9 +192,6 @@ void RobotGui::run(){
     }
     // Spin as a single-threaded node
     ros::spinOnce();
-    
-    
-    
-    
+
     }
 }
